@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Parking Dashboard</title>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+    <!-- Bootstrap JavaScript (and its dependency jQuery) -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <style>
+    th, td{
+    border: 1px solid black
+    }
+    </style>
+</head>
+<body>
+
+<!-- Navigation Bar -->
+<nav class="navbar navbar-expand-lg navbar-light bg-primary">
+    <div class="container">
+        <a class="navbar-brand" href="#">Park Your Ride</a>
+
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ml-auto">
+                <!-- Other navigation links go here -->
+            </ul>
+        </div>
+        <h4 style="text-align: center"><i>Hello,&nbsp;{{ fname }}</i></h4>&emsp;&emsp;
+        <!-- Sign Out Button -->
+        {% if user.is_authenticated %}
+        <button class="w3-button w3-hover-black w3-border w3-round-xxlarge" onclick="window.location.href='/signout'">Sign Out</button>
+        {% endif %}
+    </div>
+</nav>
+
+<!-- Display Messages -->
+{% for message in messages %}
+    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+        <strong>Message:</strong> {{ message }}
+        <button type="button" class="close" data-bs-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+{% endfor %}
+
+<!-- Main Content -->
+<div class="container mt-3">
+    {% if user.is_authenticated %}
+    <div style="float: left; padding: 15px; outline: 2px solid red">
+        <h3 style="color: red;">New Ticket :</h3>
+        <form method="post" action="/add_record">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="type">Object Type&emsp;</label>
+                <select id="type" name="type" style="width: 100px;" required>
+                    <option value="stuff">Object</option>
+                    <option value="cycle">Cycle</option>
+                    <option value="bike">Bike</option>
+                    <option value="auto">Auto</option>
+                    <option value="car">Car</option>
+                </select>
+                <br/><br/>
+                <label for="number">Object/Vehicle Number :</label>
+                <input type="text" class="form-control" id="number" name="number" placeholder="Enter The Vehicle No" Required>
+            </div>
+            <br/>
+            <div class="form-group">
+                <label for="helmet">Helmet :&emsp;</label>
+                <label for="helmet">No&emsp;</label>
+                <input type="radio" id="helmet" name="helmet" value="0">
+                <label for="helmet1">&emsp;&emsp;Yes&emsp;</label>
+                <input type="radio" id="helmet1" name="helmet" value="1">
+            </div>
+            <br/>
+            <div class="form-group" style="float: right">
+                <button type="submit" class="btn btn-outline-primary">ADD</button>
+            </div>
+        </form>
+    </div>
+    <div style="float: left; padding: 15px; outline: 2px solid orange; margin-left: 15px">
+        <h3 style="color: red;">Check Out :</h3>
+        <form method="post" action="/check_out">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="number">Object/Vehicle Number :</label>
+                <input type="text" class="form-control" id="num" name="num" placeholder="Enter Obj/Vehicle No" Required>
+            </div>
+            <br/>
+            <div class="form-group" style="float: right">
+                <button type="submit" class="btn btn-outline-primary">CHECK OUT</button>
+            </div>
+        </form>
+    </div>
+    {% if bo_vehicle %}
+    <div style="float: left; padding: 15px; outline: 2px solid green; margin-left: 15px">
+        <h3 style="color: red;">Bill Out :</h3>
+        <form method="post" action="/bill_out">
+            {% csrf_token %}
+            Object/Vehicle Number : {{ bo_vehicle.vehicle_number }} <br/>
+            Entry Time : {{ bo_vehicle.entry_time }} <br/>
+            Exit Time : {{ bo_vehicle.exit_time }} <br/>
+            Duration : {{ bo_vehicle.duration }} Hours. <br/>
+            Helmet : {% if bo_vehicle.has_helmet %} Yes {% else %} No {% endif %}<br/>
+            Bill : Rs. {{ bo_vehicle.fare }}
+            <input type="hidden" id="vehicle" name="vehicle" value="{{ bo_vehicle.id }}">
+            <br/>
+            <div style="float: right">
+                <button type="submit" class="btn btn-outline-success">Paid</button>
+            </div>
+        </form>
+        <div>
+            <button class="btn btn-outline-warning" onclick="window.location.href='/home'">Cancel</button>
+        </div>
+    </div>
+    {% endif %}
+    <div style="float: right">
+        {% if user.is_staff %}
+        <div>
+            <button class="btn btn-primary" onclick="window.location.href='/add_user'">ADD NEW USER</button>
+        </div>
+        {% endif %}
+        <br/>
+        <div>
+            <button class="btn btn-warning" onclick="window.location.href='/records'">CURRENT RECORDS</button>
+        </div>
+        <br/>
+        <div>
+            <button class="btn btn-info" onclick="window.location.href='/change_password'">CHANGE PASSWORD</button>
+        </div>
+    </div>
+
+    {% if data %}
+    <div style="float: left; outline: 2px solid black; margin-top: 5px;">
+        <table style="width: 1120px">
+        <thead style="font-size: 12px; color: blue; font-weight: bold; text-align: center;">
+            <tr>
+                <th>Sl. No.</th>
+                <th>Type</th>
+                <th>ID/Number</th>
+                <th>Entry Time</th>
+                <th>Added By</th>
+                <th>Duration(till now)</th>
+                <th>Helmet : + Rs. 10</th>
+                <th>Fare(till now)</th>
+                <th>Action</th>
+            </tr>
+            </thead>
+            <tbody style="font-size: 13px; text-align: center;">
+            {% for adder, vehicle in data %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ vehicle.vehicle_type }}</td>
+                <td>{{ vehicle.vehicle_number }}</td>
+                <td>{{ vehicle.entry_time }}</td>
+                <td>{{ adder }}</td>
+                <td>{{ vehicle.duration }} hours</td>
+                <td>
+                    {% if vehicle.has_helmet %}
+                    <b>Yes</b>
+                    {% else %}
+                    <b>No</b>
+                    {% endif %}
+                </td>
+                <td>Rs. {{ vehicle.fare }}</td>
+                <td>
+                    <button type="button" onclick="window.location.href='/home'" class="btn btn-outline-info" style="font-size: 12px;"> Cancel</button>
+                    <button type="button" onclick="handleButtonClick('{{ vehicle.id }}')" class="btn btn-outline-danger" style="font-size: 12px;"> EXIT NOW</button>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        </table>
+        <script>
+        function handleButtonClick(vehicleId) {
+        var redirectUrl = '{% url "bill_out" %}?vehicle=' + vehicleId;
+        window.location.href = redirectUrl;
+        }
+        </script>
+    </div>
+    {% endif %}
+{% endif %}
+</div>
+
+</body>
+</html>
